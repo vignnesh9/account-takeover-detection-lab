@@ -1,0 +1,83 @@
+<!-- Base rule: catch any request to the login endpoint -->
+<rule id="100100" level="0">
+  <if_sid>31100</if_sid>
+  <url>/securebank/login.php</url>
+  <description>SecureBank login attempt</description>
+</rule>
+
+<!-- Failed login attempt -->
+<rule id="100101" level="5">
+  <if_sid>100100</if_sid>
+  <match>401</match>
+  <description>SecureBank login failure</description>
+  <mitre>
+    <id>T1110</id>
+  </mitre>
+</rule>
+
+<!-- Multiple failed logins from same source = credential stuffing in progress -->
+<rule id="100102" level="10" frequency="6" timeframe="60">
+  <if_matched_sid>100101</if_matched_sid>
+  <same_source_ip />
+  <description>Possible credential stuffing attack against SecureBank login (6+ failed logins in 60s)</description>
+  <mitre>
+    <id>T1110.004</id>
+  </mitre>
+  <group>attack,</group>
+</rule>
+
+<!-- Successful login - chained off 31108, the rule that actually catches 2xx web traffic -->
+<rule id="100103" level="3">
+  <if_sid>31108</if_sid>
+  <url>/securebank/login.php</url>
+  <id>^200$</id>
+  <description>SecureBank login success</description>
+  <mitre>
+    <id>T1078</id>
+  </mitre>
+  <group>session_event,</group>
+</rule>
+
+<!-- THE KEY RULE: success shortly after a stuffing alert from the same IP = confirmed ATO -->
+<rule id="100104" level="14" frequency="2" timeframe="120">
+  <if_matched_sid>100102</if_matched_sid>
+  <if_sid>100103</if_sid>
+  <same_source_ip />
+  <description>Account Takeover suspected: successful SecureBank login following credential stuffing burst from same source IP</description>
+  <mitre>
+    <id>T1110</id>
+    <id>T1078</id>
+  </mitre>
+  <group>attack,account_takeover,</group>
+</rule>
+
+<!-- Sensitive action performed without a fresh re-authentication -->
+<rule id="100105" level="10">
+  <decoded_as>securebank-session</decoded_as>
+  <field name="event_type">SENSITIVE_ACTION_NO_STEPUP</field>
+  <description>Sensitive action performed without recent re-authentication (session step-up missing)</description>
+  <mitre>
+    <id>T1078</id>
+  </mitre>
+  <group>attack,session_anomaly,session_event,</group>
+</rule>
+
+<!-- Session created - feeds the session_event correlation group -->
+<rule id="100108" level="1">
+  <decoded_as>securebank-session</decoded_as>
+  <field name="event_type">SESSION_CREATED</field>
+  <description>SecureBank session created</description>
+  <group>session_event,</group>
+</rule>
+
+<!-- Session hijack: same user, two different source IPs, no new login in between -->
+<rule id="100106" level="12" frequency="2" timeframe="300">
+  <if_matched_group>session_event</if_matched_group>
+  <same_user />
+  <different_field>srcip</different_field>
+  <description>Session hijack suspected: same authenticated user active from two different source IPs within 5 minutes</description>
+  <mitre>
+    <id>T1550.004</id>
+  </mitre>
+  <group>attack,session_hijack,</group>
+</rule>
