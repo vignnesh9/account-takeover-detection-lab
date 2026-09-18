@@ -1,0 +1,9 @@
+<decoder name="securebank-session">
+  <prematch>^ATO_LAB </prematch>
+</decoder>
+
+<decoder name="securebank-session-fields">
+  <parent>securebank-session</parent>
+  <regex type="pcre2" offset="after_parent">^(\S+) session_id=(\S+) user=(\S+).*?ip=(\S+)$</regex>
+  <order>event_type, session_id, user, srcip</order>
+</decoder>
