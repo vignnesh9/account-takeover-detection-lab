@@ -64,7 +64,6 @@ The post-authentication signals in this project are **inference, not identity ve
 - [Phase 9 Task 1 — Command Reference](docs/Phase9_Task1_Command_Reference.docx) — sensitive action step-up detection, built command-by-command
 - [Phase 9 Task 2 — Command Reference](docs/Phase9_Task2_Command_Reference.docx) — session hijack detection, including all 6 debugging issues
 - [Project Implementation Reference](docs/ATO_Project_Implementation_Reference.docx) — self-contained walkthrough for re-learning the whole project
-- [Interview Preparation Guide](docs/ATO_Interview_Preparation_Guide.docx)
 
 ## Tools Used
 
